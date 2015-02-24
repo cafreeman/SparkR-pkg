@@ -189,8 +189,9 @@ setMethod("toRDD",
           signature(df = "DataFrame"),
           function(df) {
             jrdd <- callJStatic("edu.berkeley.cs.amplab.sparkr.SQLUtils", "dfToRowRDD", df@sdf)
+            rdd <- RDD(jrdd, serializedMode = "row")
             names <- callJMethod(df@sdf, "columns")
-            RDD(jrdd, serializedMode = "row", colNames = names)
+            lapply(rdd, function (row) { assignNames(row, names) })
           })
 
 ############################## RDD Map Functions ##################################

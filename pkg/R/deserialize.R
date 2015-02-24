@@ -106,7 +106,6 @@ readDeserializeRows <- function(inputCon) {
   # a list of lists. Since the DOS is one continuous stream and
   # the number of rows varies, we put the readRow function in a while loop
   # that termintates when the next row is empty.
-  colNames <- readList(inputCon)
 
   data <- list()
   numCols <- readInt(inputCon)
@@ -115,8 +114,7 @@ readDeserializeRows <- function(inputCon) {
     data[[length(data) + 1L]] <- readRow(inputCon, numCols)
     numCols <- readInt(inputCon)
   }
-  dataOut <- lapply(data, assignNames, colNames)
-  dataOut # this is a list of named lists now
+  data
 }
 
 readRowList <- function(obj) {
