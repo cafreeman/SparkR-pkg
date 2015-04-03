@@ -38,7 +38,9 @@ getLevels <- function(df, field) {
 # Explode categorical fields into one binary measure per distinct value
 explodeField <- function(fieldName, levels) {
   lapply(levels, function(level) {
-    paste("IF (", safeName(fieldName), " = \"", level, "\", 1, 0) AS ", safeName(level), sep = "")
+    paste("IF (", safeName(fieldName), " = \"", level, "\", 1, 0) AS ",
+          safeName(paste(fieldName, "_", level, sep = "")),
+          sep = "")
   })
 }
 
