@@ -88,9 +88,15 @@ linearRegressionWithSGD <- function(formula,
   if (!(reg_type %in% c("none", "l1", "l2"))) {
     stop("The provided regularization type must be one of 'none', 'l1', and 'l2'.")
   }
-  # Parse the formula and prep/check the start values
-  pf <- SparkR:::parseFormula(formula)
+  # Parse the formula and prepare the data
+  pf <- parseFormula(formula)
   fields <- pf[[1]]
+  estDF <- model.matrix(df, fields)
+  # Update fields with new column names
+  fields <- names(estDF)
+  estLP <- dfToLabeledPoints(estDF)
+  callJMethod(estLP, "cache")
+  # Prep/check the start values
   if (is.null(start_vals)) {
     start_vals <- rep(0, length(fields))
     if (pf[[2]] == 0) {
@@ -108,10 +114,6 @@ linearRegressionWithSGD <- function(formula,
   step <- as.numeric(step)
   # Get the model call
   the_call <- match.call()
-  # Prepare the data
-  estDF <- select(df, fields)
-  estLP <- dfToLabeledPoints(estDF)
-  SparkR:::callJMethod(estLP, "cache")
   # Estimate the model
   the_model <- SparkR:::callJStatic("edu.berkeley.cs.amplab.sparkr.MLlibR",
                                     "trainLinearRegressionWithSGD",
@@ -170,6 +172,12 @@ logisticRegressionWithLBFGS <- function(formula,
   the_call <- match.call()
   pf <- parseFormula(formula)
   fields <- pf[[1]]
+  estDF <- model.matrix(df, fields)
+  # Update fields with new column names
+  fields <- names(estDF)
+  estLP <- dfToLabeledPoints(estDF)
+  callJMethod(estLP, "cache")
+  # Prep/check the start values
   if (is.null(start_vals)) {
     start_vals <- rep(0, length(fields))
     if (pf[[2]] == 0) {
@@ -184,9 +192,6 @@ logisticRegressionWithLBFGS <- function(formula,
     stop(paste(length(start_vals), "start values were provided when", length_start, "are needed."))
   }
   start_vals <- as.list(as.numeric(start_vals))
-  estDF <- select(df, fields)
-  estLP <- dfToLabeledPoints(estDF)
-  SparkR:::callJMethod(estLP, "cache")
   use_intercept <- pf[[2]]
   the_model <- SparkR:::callJStatic("edu.berkeley.cs.amplab.sparkr.MLlibR",
                                     "trainLogisticRegressionModelWithLBFGS",
@@ -255,9 +260,10 @@ decisionTree <- function(formula,
   the_call <- match.call()
   pf <- SparkR:::parseFormula(formula)
   fields <- pf[[1]]
+  # TO DO: Categoricals in tree models
   estDF <- select(df, fields)
   estLP <- dfToLabeledPoints(estDF)
-  SparkR:::callJMethod(estLP, "cache")
+  callJMethod(estLP, "cache")
   if (modType == "classification") {
     the_model <- SparkR:::callJStatic("edu.berkeley.cs.amplab.sparkr.MLlibR",
                                       "trainClassificationTree",
