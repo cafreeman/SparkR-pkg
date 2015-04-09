@@ -125,7 +125,11 @@ linearRegressionWithSGD <- function(formula,
                                     reg_param,
                                     reg_type,
                                     as.integer(pf[[2]]))
-  obj <- list(Model = the_model, Data = estLP, Fields = fields, call = the_call)
+  obj <- list(Model = the_model,
+              Data = estLP,
+              Fields = fields,
+              call = the_call,
+              origFields = origFields)
   class(obj) <- "LinearRegressionModel"
   obj
 }
@@ -171,8 +175,8 @@ logisticRegressionWithLBFGS <- function(formula,
   # Parse the formula and prepare the data
   the_call <- match.call()
   pf <- parseFormula(formula)
-  fields <- pf[[1]]
-  estDF <- model.matrix(df, fields)
+  origFields <- pf[[1]]
+  estDF <- model.matrix(df, origFields)
   # Update fields with new column names
   fields <- names(estDF)
   estLP <- dfToLabeledPoints(estDF)
@@ -203,7 +207,12 @@ logisticRegressionWithLBFGS <- function(formula,
                                     use_intercept,
                                     corrections,
                                     tol)
-  obj <- list(Model = the_model, Data = estLP, Fields = fields, Intercept = ifelse(use_intercept == 1L, TRUE, FALSE), call = the_call)
+  obj <- list(Model = the_model,
+              Data = estLP,
+              Fields = fields,
+              Intercept = ifelse(use_intercept == 1L, TRUE, FALSE),
+              call = the_call,
+              origFields = origFields)
   class(obj) <- "LogisticRegressionModel"
   obj
 }
@@ -480,8 +489,10 @@ idScore.LinearRegressionModel <- function(model, id, df, sqlCtx) {
   if (class(df) != "DataFrame") {
     stop("The data (df) must be a Spark DataFrame.")
   }
-  fields <- as.list(c(id, model$Fields[-1]))
-  scoreDF <- select(df, fields)
+  # Use origFields so we can map non-expanded fields to the model object for scoring
+  fields <- as.list(c(id, model$origFields[-1]))
+  # Use optional id argument to exclude the id field from being expanded
+  scoreDF <- model.matrix(df, fields, id)
   scoreIP <- dfToIdPoints(scoreDF)
   SparkR:::callJMethod(scoreIP,"cache")
   scores <- SparkR:::callJStatic("edu.berkeley.cs.amplab.sparkr.MLlibR",
@@ -500,9 +511,10 @@ idScore.LogisticRegressionModel <- function(model, id, df, sqlCtx) {
   if (class(df) != "DataFrame") {
     stop("The data (df) must be a Spark DataFrame.")
   }
-  # Create field order, making sure to place ID field first
-  fields <- as.list(c(id, model$Fields[-1]))
-  scoreDF <- select(df, fields)
+  # Use origFields so we can map non-expanded fields to the model object for scoring
+  fields <- as.list(c(id, model$origFields[-1]))
+  # Use optional id argument to exclude the id field from being expanded
+  scoreDF <- model.matrix(df, fields, id)
   scoreIP <- dfToIdPoints(scoreDF)
   SparkR:::callJMethod(scoreIP, "cache")
   scores <- SparkR:::callJStatic("edu.berkeley.cs.amplab.sparkr.MLlibR",
