@@ -4,11 +4,9 @@
 # functions for manipulating DataFrames                                              #
 ######################################################################################
 
-setGeneric("model.matrix",function(object, vars) { standardGeneric("model.matrix") })
-
 setMethod("model.matrix",
-          signature(object = "DataFrame", vars = "list"),
-          function (object, vars) {
+          signature(object = "DataFrame"),
+          function (object, vars, id = NULL) {
             # Identify all string fields in the formula and pull them out of the df
             stringVars <- lapply(Filter(function(x) x[[2]] == "string", dtypes(select(object, vars))),
                                  function(i) i[[1]])
