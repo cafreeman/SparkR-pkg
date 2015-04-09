@@ -16,8 +16,6 @@ setMethod("model.matrix",
             varLevels <- lapply(stringVars, function(var) {
               list(fieldName = var, levels = getLevels(object, var))
             })
-            # Full list of column names for the resulting df
-            allNames <- union(otherVars, unlist(lapply(varLevels, function(x) x$levels)))
             # Binary field creators for each categorical
             catDummies <- unlist(lapply(varLevels, function(level) {
               explodeField(level$fieldName, level$levels)  
