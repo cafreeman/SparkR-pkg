@@ -8,8 +8,15 @@ setMethod("model.matrix",
           signature(object = "DataFrame"),
           function (object, vars, id = NULL) {
             # Identify all string fields in the formula and pull them out of the df
-            stringVars <- lapply(Filter(function(x) x[[2]] == "string", dtypes(select(object, vars))),
-                                 function(i) i[[1]])
+            if (is.null(id)) {
+              stringVars <- lapply(Filter(function(x) x[[2]] == "string",
+                                          dtypes(select(object, vars))),
+                                   function(i) i[[1]])
+            } else {
+              stringVars <- lapply(Filter(function(x) x[[2]] == "string" && x[[1]] != id,
+                                          dtypes(select(object, vars))),
+                                   function(i) i[[1]])
+            }
             # Store non-categorical field names for creating the final dataframe
             otherVars <- setdiff(vars, stringVars)
             # Distinct values in each categorical field
@@ -20,8 +27,8 @@ setMethod("model.matrix",
             catDummies <- unlist(lapply(varLevels, function(level) {
               explodeField(level$fieldName, level$levels)  
             }), recursive = FALSE)
-            explodedDF <- selectExpr(object, union(otherVars, catDummies))
-            dfOut <- castAll(explodedDF, "double")
+            explodedDF <- selectExpr(object, union(otherVars, catDummies))              
+            dfOut <- castAll(explodedDF, "double", id)
           })
 
 getLevels <- function(df, field) {
@@ -40,10 +47,14 @@ explodeField <- function(fieldName, levels) {
   })
 }
 
-# Cast all fields of a DataFrame to a given data type
-castAll <- function(df, type) {
+# Cast all fields of a DataFrame to a given data type, with optional exceptions
+castAll <- function(df, type, except = NULL) {
   exprs <- lapply(names(df), function(name) {
-    paste("CAST(", safeName(name), " AS ", type, ") AS ", safeName(name), sep = "")
+    if (name %in% except) {
+      name
+    } else {
+      paste("CAST(", safeName(name), " AS ", type, ") AS ", safeName(name), sep = "")
+    }
   })
   selectExpr(df, exprs)
 }
