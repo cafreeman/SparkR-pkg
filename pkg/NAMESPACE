@@ -28,6 +28,7 @@ exportMethods(
               "fullOuterJoin",
               "glom",
               "groupByKey",
+              "intersection",
               "join",
               "keyBy",
               "keys",
@@ -53,10 +54,14 @@ exportMethods(
               "repartition",
               "rightOuterJoin",
               "sampleRDD",
+              "sampleByKey",
               "saveAsTextFile",
               "saveAsObjectFile",
               "sortBy",
               "sortByKey",
+              "subtract",
+              "subtractByKey",
+              "sumRDD",
               "take",
               "takeOrdered",
               "takeSample",
@@ -94,6 +99,7 @@ exportClasses("DataFrame")
 exportMethods("columns",
               "distinct",
               "dtypes",
+              "except",
               "explain",
               "filter",
               "groupBy",
@@ -117,7 +123,6 @@ exportMethods("columns",
               "show",
               "showDF",
               "sortDF",
-              "subtract",
               "toJSON",
               "toRDD",
               "unionAll",
@@ -176,8 +181,15 @@ export("cacheTable",
 
 export("sparkRSQL.init",
        "sparkRHive.init")
-export("print.structType",
-       "print.structField")
+
+export("structField",
+       "structField.jobj",
+       "structField.character",
+       "print.structField",
+       "structType",
+       "structType.jobj",
+       "structType.structField",
+       "print.structType")
 
 # MLlibR
 # Functions
