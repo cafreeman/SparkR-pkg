@@ -50,6 +50,19 @@ object SQLUtils {
     StructField(name, dtObj, nullable)
   }
 
+  // def toMap(pairs: Array[Object]) = {
+  //   pairs.toMap
+  // }
+
+  def createMap(pairs: Array[Object]) = {
+    val map = new collection.mutable.HashMap[Any, Any]
+    pairs.iterator.foreach { x =>
+      val obj = x.asInstanceOf[(Any, Any)]
+      map.put(obj._1, obj._2)
+    }
+    map
+  }
+
   def createDF(rdd: RDD[Array[Byte]], schema: StructType, sqlContext: SQLContext): DataFrame = {
     val num = schema.fields.size
     val rowRDD = rdd.map(bytesToRow)
